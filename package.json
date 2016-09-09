@@ -10,16 +10,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "debug": "2.2.0",
-    "engine.io-client": "1.6.11",
+    "backo2": "1.0.2",
     "component-bind": "1.0.0",
     "component-emitter": "1.2.0",
-    "object-component": "0.0.3",
-    "socket.io-parser": "2.2.6",
+    "debug": "2.2.0",
+    "engine.io-client": "1.6.11",
     "has-binary": "0.1.7",
     "indexof": "0.0.1",
+    "keypress": "^0.2.1",
+    "object-component": "0.0.3",
     "parseuri": "0.0.4",
-    "to-array": "0.1.4",
-    "backo2": "1.0.2"
+    "socket.io-parser": "2.2.6",
+    "to-array": "0.1.4"
   }
 }

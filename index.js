@@ -1,108 +1,65 @@
-const io = require('socket.io-client')
+const player = require('./player')
 const config = require('./config')
-
-let opponent = {}
-let me = {}
-let moves = []
-let lastMove = "attack"
+const io = require('socket.io-client')
+let lastMove = ""
 
 console.log('connecting')
 let socket = io.connect(config.host)
 console.log('connection requested')
 
+var keypress = require('keypress');
+
+// make `process.stdin` begin emitting "keypress" events
+keypress(process.stdin);
+
+// listen for the "keypress" event
+process.stdin.on('keypress', function (ch, key) {
+  if (key && key.ctrl && key.name == 'c') {
+    process.exit()
+  }
+  if (key && key.name == 'a') {
+    console.log('attack')
+    socket.emit('attack')
+  }
+  if (key && key.name == 'h') {
+    console.log('heal')
+    socket.emit('heal')
+  }
+});
+
+process.stdin.setRawMode(true);
+process.stdin.resume();
+
 socket.on('connect', (data) => {
   console.log('connected')
-})
-
-socket.on('request registration', () => {
-  console.log('registration requested')
-  socket.emit('register', {
-    name: config.playerName
+  socket.emit('enter arena',{id: process.argv[2]})
+  socket.on('in arena',() => { socket.emit('ready to play',{}) })
+  socket.on('start game', (game) => {
+    console.log('game started')
+    if (game.current === process.argv[2]) {
+      console.log('your turn')
+    }
+  })
+  socket.on('move played', (move) => {
+    console.log("MOVE PLAYED", move)
+    if(move.player != process.argv[2]) {
+      performMove()
+    }
+  })
+  socket.on('invalid', (error) => {
+    console.log("INVALID ACTION", error)
+  })
+  socket.on('game over', (game) => {
+    console.log("GAME OVER", game)
   })
 })
 
-socket.on('registered', (data) => {
-  console.log('registered')
-  me.id = data.id
-  socket.emit('request game', {})
-})
-
-socket.on('disconnect', () => {
-  console.log('disconnected')
-})
-
-socket.on('start game', (data) => {
-  console.log('game started')
-  data.players.forEach((player) => {
-    if (player.id !== me.id) {
-      opponent = player
-    } else {
-      me = player
-    }
-  })
-  if (data.current === me.id) {
-    console.log("Playing first")
-    play()
-  }
-})
-
-socket.on('waiting', () => {
-  console.log('waiting on new player')
-})
-
-socket.on('invalid', (data) => {
-  console.log(data.message)
-})
-
-socket.on('game over', (data) => {
-  console.log("GAME OVER!")
-  if (data.winner === me.id) {
-    console.log("YOU WON!!!!")
-  } else {
-    console.log("You Lost")
-  }
-  console.log(data.moves.length.toString(), "Moves")
-  socket.emit('request game', {})
-})
-
-socket.on('opponent played', (data) => {
-  console.log('opponent played')
-  processMove(data)
-  play()
-})
-
-socket.on('played', (data) => {
-  console.log('you played')
-  processMove(data)
-})
-
-let processMove = (move) => {
-  moves.push(move)
-  if (move.player == me.id) {
-    if (move.action == "attack") {
-      opponent.health -= move.value
-    } else {
-      me.health += move.value
-    }
-  } else {
-    if (move.action == "attack") {
-      me.health -= move.value
-    } else {
-      opponent.health += move.value
-    }
-  }
-  console.log("You", me.health, "Opponent", opponent.health)
-}
-
-let play = () => {
-  console.log('playing')
-  if (lastMove == "attack") {
-    lastMove = "heal"
-    console.log("Healing...")
-    socket.emit('heal', {})
-  } else {
+let performMove = () => {
+  if (lastMove !== "attack") {
     lastMove = "attack"
-    console.log("Attacking...")
-    socket.emit('attack', {})
+    socket.emit("attack")
+  } else {
+    lastMove = "heal"
+    socket.emit("heal")
   }
 }
