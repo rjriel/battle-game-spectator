@@ -1,10 +1,11 @@
-# battle-game-client
+# battle-game-spectator
 
 ## Overview
 
-This is a demo app for the [battle-game](https://github.com/rjriel/battle-game) server.
+This is a demo spectator app for the [battle-game](https://github.com/rjriel/battle-game) server.
 
-The strategy for this app is to perform the opposite action of last turn (ie. heal if last move was attack, attack if last move was heal)
+The point of this app is to log in with a player under the "spectator" role and track existing
+games as they're played
 
 ## Getting started
 To get up and running please follow the following steps
